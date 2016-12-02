@@ -20,7 +20,7 @@ namespace SmartH2O_DU
 
         static void Main(string[] args)
         {
-            //TESTE GIT
+            //TESTE GIT testes 2222222
             SensorNodeDll.SensorNodeDll dll;
 
             dll = new SensorNodeDll.SensorNodeDll();
