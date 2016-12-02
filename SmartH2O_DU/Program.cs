@@ -68,6 +68,7 @@ namespace SmartH2O_DU
             {
                 m_cClient.Publish(m_strTopicsInfo[0], Encoding.UTF8.GetBytes(signalMessage));
             }
+            //TESTE GIT
         }
 
         private static string createXml(int signalId, string signalName, string signalValue)
