@@ -77,14 +77,11 @@ namespace SmartH2O_DU
             //RECEBE OS VALORES DA STRING JÁ SEPARARADOS E FAZ RETURN DO XML 
             XmlDocument dataSensor = new XmlDocument();
 
-            DateTime dat = DateTime.Now;
+            DateTime currentDate = DateTime.Now;
             DateTimeFormatInfo dfi = DateTimeFormatInfo.CurrentInfo;
             Calendar cal = dfi.Calendar;
-            int weekNumber = cal.GetWeekOfYear(dat, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Sunday);
+            int weekNumber = cal.GetWeekOfYear(currentDate, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Sunday);
 
-            String d = dat.ToString("HH;mm;ss;dd;MM;yyyy");
-
-            String[] parsedDate = d.Split(';');
 
             XmlElement signal = dataSensor.CreateElement("signal");
             signal.SetAttribute("parameterType", signalName);
@@ -94,17 +91,17 @@ namespace SmartH2O_DU
             value.InnerText = signalValue;
             XmlElement date = dataSensor.CreateElement("date");
             XmlElement day = dataSensor.CreateElement("day");
-            day.InnerText = parsedDate[3];
+            day.InnerText = currentDate.Day.ToString();
             XmlElement month = dataSensor.CreateElement("month");
-            month.InnerText = parsedDate[4];
+            month.InnerText = currentDate.Month.ToString();
             XmlElement year = dataSensor.CreateElement("year");
-            year.InnerText = parsedDate[5];
+            year.InnerText = currentDate.Year.ToString();
             XmlElement hour = dataSensor.CreateElement("hour");
-            hour.InnerText = parsedDate[0];
+            hour.InnerText = currentDate.Hour.ToString();
             XmlElement minute = dataSensor.CreateElement("minute");
-            minute.InnerText = parsedDate[1];
+            minute.InnerText = currentDate.Minute.ToString();
             XmlElement second = dataSensor.CreateElement("second");
-            second.InnerText = parsedDate[2];
+            second.InnerText = currentDate.Second.ToString();
             XmlElement week = dataSensor.CreateElement("week");
             week.InnerText = weekNumber.ToString();
 
