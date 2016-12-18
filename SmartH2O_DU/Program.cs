@@ -14,20 +14,19 @@ namespace SmartH2O_DU
     class Program
     {
         static String ipAddress = ConfigurationSettings.AppSettings["ipAddressMessagingChannel"];
+        static SensorNodeDll.SensorNodeDll dll;
 
         static MqttClient m_cClient = new MqttClient(ipAddress);
         static string[] m_strTopicsInfo = { "dataSensors" };
 
         static void Main(string[] args)
         {
-            //TESTE GIT testes 2222222
-            SensorNodeDll.SensorNodeDll dll;
 
             dll = new SensorNodeDll.SensorNodeDll();
 
             connectToMessagingChannel();
 
-            dll.Initialize(getDataFromSensor, 5000);
+            dll.Initialize(getDataFromSensor, 2000);
         }
 
         private static void connectToMessagingChannel()
@@ -38,7 +37,10 @@ namespace SmartH2O_DU
             if (!m_cClient.IsConnected)
             {
                 Console.WriteLine("Error connecting to message broker...");
-                return;
+                dll.Stop();
+
+                Console.ReadKey();
+                Environment.Exit(-1);
             }
         }
 
@@ -47,18 +49,42 @@ namespace SmartH2O_DU
             //RECEBE A STRING DO SENSOR, FAZ O PARSE DA MESMA E ENVIA PARA METODO PARA CRIAR XML.
             string signalMessage = null;
 
-            String[] signal = message.Split(';');
-
-            int signalId = Int32.Parse(signal[0]);
-            string signalName = signal[1];
-            string signalValue = signal[2];
-
-            signalMessage = createXml(signalId, signalName, signalValue);
-
-            if (signalMessage != null)
+            try
             {
-                sendDataSensor(signalMessage);
+                String[] signal = message.Split(';');
+
+                int signalId = Int32.Parse(signal[0]);
+                string signalName = signal[1];
+                string signalValue = signal[2];
+
+                signalMessage = createXml(signalId, signalName, signalValue);
+
+                if (signalMessage != null)
+                {
+                    sendDataSensor(signalMessage);
+                }
             }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                closeConnection();
+            }
+
+        }
+
+        private static void closeConnection()
+        {
+            if (m_cClient.IsConnected)
+            {
+                m_cClient.Unsubscribe(m_strTopicsInfo);
+                m_cClient.Disconnect();
+            }
+
+            dll.Stop();
+
+            Console.ReadKey();
+
+            Environment.Exit(-1);
         }
 
         private static void sendDataSensor(string signalMessage)
