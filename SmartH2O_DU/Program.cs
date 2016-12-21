@@ -14,10 +14,11 @@ namespace SmartH2O_DU
     class Program
     {
         static String ipAddress = ConfigurationSettings.AppSettings["ipAddressMessagingChannel"];
+        static String topics = ConfigurationSettings.AppSettings["topics"];
         static SensorNodeDll.SensorNodeDll dll;
 
         static MqttClient m_cClient = new MqttClient(ipAddress);
-        static string[] m_strTopicsInfo = { "dataSensors" };
+        static string[] m_strTopicsInfo = { topics };
 
         static void Main(string[] args)
         {
@@ -31,22 +32,24 @@ namespace SmartH2O_DU
 
         private static void connectToMessagingChannel()
         {
-            //CONNECT TO THE MESSAGING CHANNEL
-            m_cClient.Connect(Guid.NewGuid().ToString());
-
-            if (!m_cClient.IsConnected)
+            try
             {
-                Console.WriteLine("Error connecting to message broker...");
-                dll.Stop();
+                m_cClient.Connect(Guid.NewGuid().ToString());
 
-                Console.ReadKey();
-                Environment.Exit(-1);
+                if (!m_cClient.IsConnected)
+                {
+                    Console.WriteLine("Error connecting to message broker...");
+                }
+            }
+            catch (Exception e)
+            {
+                Console.WriteLine(e.Message);
+                closeConnection();
             }
         }
 
         private static void getDataFromSensor(string message)
         {
-            //RECEBE A STRING DO SENSOR, FAZ O PARSE DA MESMA E ENVIA PARA METODO PARA CRIAR XML.
             string signalMessage = null;
 
             try
@@ -89,24 +92,21 @@ namespace SmartH2O_DU
 
         private static void sendDataSensor(string signalMessage)
         {
-            //ENVIA OS DADOS PARA O SISTEMA DE COMUNICAÇÃO (MASSAGING)
 
             if (m_cClient.IsConnected)
             {
                 m_cClient.Publish(m_strTopicsInfo[0], Encoding.UTF8.GetBytes(signalMessage));
             }
-            //TESTE GIT
         }
 
         private static string createXml(int signalId, string signalName, string signalValue)
         {
-            //RECEBE OS VALORES DA STRING JÁ SEPARARADOS E FAZ RETURN DO XML 
             XmlDocument dataSensor = new XmlDocument();
 
             DateTime currentDate = DateTime.Now;
             DateTimeFormatInfo dfi = DateTimeFormatInfo.CurrentInfo;
             Calendar cal = dfi.Calendar;
-            int weekNumber = cal.GetWeekOfYear(currentDate, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Sunday);
+            int weekNumber = cal.GetWeekOfYear(currentDate, CalendarWeekRule.FirstFourDayWeek, DayOfWeek.Monday);
 
 
             XmlElement signal = dataSensor.CreateElement("signal");
@@ -115,6 +115,7 @@ namespace SmartH2O_DU
 
             XmlElement value = dataSensor.CreateElement("value");
             value.InnerText = signalValue;
+
             XmlElement date = dataSensor.CreateElement("date");
             XmlElement day = dataSensor.CreateElement("day");
             day.InnerText = currentDate.Day.ToString();
